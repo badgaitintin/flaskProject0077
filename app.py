@@ -37,14 +37,12 @@ def load_history():
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, 'r') as f:
             history = json.load(f)
-        # Ensure each item has an 'id' field
         for i, item in enumerate(history):
             item['id'] = i
         return history
     return []
 
 def save_history(history):
-    # Ensure each item has an 'id' field before saving
     for i, item in enumerate(history):
         item['id'] = i
     with open(HISTORY_FILE, 'w') as f:
@@ -54,9 +52,31 @@ def save_history(history):
 history = load_history()
 
 # Streamlit Interface
-st.title("Plant Disease Classification")
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #f0f2f6;
+        padding: 20px;
+    }
+    .stButton button {
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .stButton button:hover {
+        background-color: #45a049;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-uploaded_file = st.file_uploader("Choose an image...", type="jpg")
+st.title("🌱 Plant Disease Classification")
+
+uploaded_file = st.file_uploader("Upload an image...", type="jpg")
 
 if uploaded_file is not None:
     img_bytes = uploaded_file.read()
@@ -69,8 +89,16 @@ if uploaded_file is not None:
     labels = ["Fungi/Bacteria", "Healthy", "Nutrient"]
     predicted_label = labels[predicted.item()]
 
-    # Display image
-    st.image(uploaded_file, caption=f"Predicted: {predicted_label}", use_column_width=True)
+    # Display image with a box shadow
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center;">
+            <img src="data:image/jpg;base64,{image_to_base64(img_bytes)}" style="width: 80%; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);" />
+        </div>
+        <h3 style="text-align: center; color: #333;">Predicted: {predicted_label}</h3>
+        """,
+        unsafe_allow_html=True
+    )
 
     # Add new data to history
     new_item = {
@@ -78,37 +106,31 @@ if uploaded_file is not None:
         'filename': uploaded_file.name,
         'label': predicted_label,
         'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'img_data': image_to_base64(img_bytes)  # Ensure this is added
+        'img_data': image_to_base64(img_bytes)
     }
     history.append(new_item)
     save_history(history)
 
-# Display Prediction History
-st.write("Prediction History")
-num_columns = 4  # Adjust the number of columns here
-cols = st.columns(num_columns)
-
-
+# Clear history button with confirmation
 if st.button('Clear History'):
-    history = []  # Clear the in-memory history
-    save_history(history)  # Save the cleared history
-    st.write("History cleared.")  # Optional: display a confirmation message
+    history = []
+    save_history(history)
+    st.success("History cleared.")
 
-# Only render the history if it's not empty
+# Display Prediction History
 if history:
-    st.write("Prediction History")
-    num_columns = 4  # Adjust the number of columns here
+    st.write("### Prediction History")
+    num_columns = 4
     cols = st.columns(num_columns)
 
-    # Loop through history to display cards in columns
     for i, item in enumerate(history):
-        img_data = item.get('img_data')  # Use .get() to avoid KeyError
-        if img_data:  # Check if img_data exists
-            with cols[i % num_columns]:  # Use modulo to distribute items across columns
+        img_data = item.get('img_data')
+        if img_data:
+            with cols[i % num_columns]:
                 card_html = f"""
-                <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:5px;">
+                <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:5px;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
                     <img src="data:image/jpg;base64,{img_data}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
-                    <p><strong>{item['filename']}</strong></p>
+                    <p style="margin-top:10px;"><strong>{item['filename']}</strong></p>
                     <p>Prediction: {item['label']}</p>
                     <p><small class="text-muted">Analyzed on: {item['timestamp']}</small></p>
                 </div>
@@ -117,6 +139,14 @@ if history:
 else:
     st.write("No prediction history available.")
 
+# Instructions
+st.markdown("### Instructions")
+st.markdown(
+    """
+    1. Upload an image of a plant leaf.
+    2. Wait for the model to classify the disease.
+    3. View the prediction history below.
+    """
+)
 
-# webapp is not ready
-# run "streamlit run app.py" on terminal
+# Run "streamlit run app.py" on terminal
