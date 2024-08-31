@@ -88,6 +88,7 @@ st.write("Prediction History")
 num_columns = 4  # Adjust the number of columns here
 cols = st.columns(num_columns)
 
+
 # Loop through history to display cards in columns
 for i, item in enumerate(history):
     img_data = item.get('img_data')  # Use .get() to avoid KeyError
@@ -95,7 +96,7 @@ for i, item in enumerate(history):
         with cols[i % num_columns]:  # Use modulo to distribute items across columns
             card_html = f"""
             <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:5px;">
-                <img src="data:image/jpg;base64,{img_data}" style="width:100%;border-radius:5px;">
+                <img src="data:image/jpg;base64,{img_data}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
                 <p><strong>{item['filename']}</strong></p>
                 <p>Prediction: {item['label']}</p>
                 <p><small class="text-muted">Analyzed on: {item['timestamp']}</small></p>
@@ -103,9 +104,12 @@ for i, item in enumerate(history):
             """
             st.markdown(card_html, unsafe_allow_html=True)
 
+
+# Loop through history to display cards in columns
 if st.button('Clear History'):
-    save_history([])
-    st.write("History cleared.")
+    history = []  # Clear the in-memory history
+    save_history(history)  # Save the cleared history
+    st.experimental_rerun()  # Rerun the app to reflect changes
 
 # webapp is not ready
 # run "streamlit run app.py" on terminal
