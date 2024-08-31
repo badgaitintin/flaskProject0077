@@ -89,27 +89,34 @@ num_columns = 4  # Adjust the number of columns here
 cols = st.columns(num_columns)
 
 
-# Loop through history to display cards in columns
-for i, item in enumerate(history):
-    img_data = item.get('img_data')  # Use .get() to avoid KeyError
-    if img_data:  # Check if img_data exists
-        with cols[i % num_columns]:  # Use modulo to distribute items across columns
-            card_html = f"""
-            <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:5px;">
-                <img src="data:image/jpg;base64,{img_data}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
-                <p><strong>{item['filename']}</strong></p>
-                <p>Prediction: {item['label']}</p>
-                <p><small class="text-muted">Analyzed on: {item['timestamp']}</small></p>
-            </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
-
-
-# Loop through history to display cards in columns
 if st.button('Clear History'):
     history = []  # Clear the in-memory history
     save_history(history)  # Save the cleared history
-    st.experimental_rerun()  # Rerun the app to reflect changes
+    st.write("History cleared.")  # Optional: display a confirmation message
+
+# Only render the history if it's not empty
+if history:
+    st.write("Prediction History")
+    num_columns = 4  # Adjust the number of columns here
+    cols = st.columns(num_columns)
+
+    # Loop through history to display cards in columns
+    for i, item in enumerate(history):
+        img_data = item.get('img_data')  # Use .get() to avoid KeyError
+        if img_data:  # Check if img_data exists
+            with cols[i % num_columns]:  # Use modulo to distribute items across columns
+                card_html = f"""
+                <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:5px;">
+                    <img src="data:image/jpg;base64,{img_data}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
+                    <p><strong>{item['filename']}</strong></p>
+                    <p>Prediction: {item['label']}</p>
+                    <p><small class="text-muted">Analyzed on: {item['timestamp']}</small></p>
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
+else:
+    st.write("No prediction history available.")
+
 
 # webapp is not ready
 # run "streamlit run app.py" on terminal
